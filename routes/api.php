@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\Products;
 use App\Http\Controllers\Api\Admin\Category;
+use App\Http\Controllers\Api\Admin\Variant;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -26,3 +27,11 @@ Route::get('category-detail/{id}', [Category::class, 'show'])->name('api.show.ca
 Route::post('category-create', [Category::class, 'store'])->name('api.add.category');         
 Route::put('category-update/{id}', [Category::class, 'update'])->name('api.update.category');  
 Route::delete('category-delete/{id}', [Category::class, 'destroy'])->name('api.delete.category');
+
+
+
+Route::get('variant', [Variant::class, 'index'])->name('api.variant');
+Route::get('variant-detail/{id}', [Variant::class, 'show'])->name('api.show.variant');
+Route::post('variant-create', [Variant::class, 'store'])->name('api.add.variant');     
+Route::put('variant-update/{id}', [Variant::class, 'update'])->name('api.update.variant');  
+Route::delete('variant-delete/{id}', [Variant::class, 'destroy'])->name('api.delete.variant');
