@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\Products;
 use App\Http\Controllers\Api\Admin\Category;
 use App\Http\Controllers\Api\Admin\Variant;
+use App\Http\Controllers\Api\Admin\Tags;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -35,3 +36,11 @@ Route::get('variant-detail/{id}', [Variant::class, 'show'])->name('api.show.vari
 Route::post('variant-create', [Variant::class, 'store'])->name('api.add.variant');     
 Route::put('variant-update/{id}', [Variant::class, 'update'])->name('api.update.variant');  
 Route::delete('variant-delete/{id}', [Variant::class, 'destroy'])->name('api.delete.variant');
+
+
+
+Route::get('tags', [Tags::class, 'index'])->name('api.tags');
+Route::get('tags-detail/{id}', [Tags::class, 'show'])->name('api.show.tags');
+Route::post('tags-create', [Tags::class, 'store'])->name('api.add.tags');  
+Route::put('tags-update/{id}', [Tags::class, 'update'])->name('api.update.tags');  
+Route::delete('tags-delete/{id}', [Tags::class, 'destroy'])->name('api.delete.tags');
