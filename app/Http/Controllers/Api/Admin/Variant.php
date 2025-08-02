@@ -114,44 +114,43 @@ class Variant extends Controller
 
 
         public function update(ValidationAddVariantRequest $request, $id)
-{
-    $data = $request->validated();
+            {
+                $data = $request->validated();
 
-      $variant = $this->VariantModel
-            ->select(
-                            'product_variants.*',
-                            'products.name as name_product'
-                        )
-                        ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
-            ->where('product_variants.id', $id)
-            ->first();
+                $variant = $this->VariantModel
+                        ->select(
+                                        'product_variants.*',
+                                        'products.name as name_product'
+                                    )
+                                    ->leftJoin('products', 'products.id', '=', 'product_variants.product_id')
+                        ->where('product_variants.id', $id)
+                        ->first();
 
-    if (!$variant) {
-           return ApiResponse::error('product dengan ID tersebut tidak ditemukan.', [
-                'id' => ['Data tidak tersedia.']
-            ], 404);
-    }
+                if (!$variant) {
+                    return ApiResponse::error('product dengan ID tersebut tidak ditemukan.', [
+                            'id' => ['Data tidak tersedia.']
+                        ], 404);
+                }
 
-    try {
+            try {
+                // Validasi duplikat
+                $errors = VariantModel::isDuplicate($data, $id);
+                        if (!empty($errors)) {
+                        return ApiResponse::error('Validasi gagal', $errors, 400);
+                    }
+                $variant->update($data);
 
-         // Validasi duplikat
-        $errors = VariantModel::isDuplicate($data, $id);
-                if (!empty($errors)) {
-                 return ApiResponse::error('Validasi gagal', $errors, 400);
+                return ApiResponse::success(new VariantResource($variant), 'Berhasil memperbarui Variant', 200);
+            } catch (\Illuminate\Database\QueryException $e) {
+                return ApiResponse::error('Gagal update Variant (query error)', [
+                    'exception' => config('app.debug') ? $e->getMessage() : null
+                ], 422);
+            } catch (\Exception $e) {
+                return ApiResponse::error('Terjadi kesalahan saat update Variant', [
+                    'exception' => config('app.debug') ? $e->getMessage() : 'Silakan coba beberapa saat lagi'
+                ], 500);
             }
-        $variant->update($data);
-
-        return ApiResponse::success(new VariantResource($variant), 'Berhasil memperbarui Variant', 200);
-    } catch (\Illuminate\Database\QueryException $e) {
-        return ApiResponse::error('Gagal update Variant (query error)', [
-            'exception' => config('app.debug') ? $e->getMessage() : null
-        ], 422);
-    } catch (\Exception $e) {
-        return ApiResponse::error('Terjadi kesalahan saat update Variant', [
-            'exception' => config('app.debug') ? $e->getMessage() : 'Silakan coba beberapa saat lagi'
-        ], 500);
-    }
-}
+        }
 
 
 

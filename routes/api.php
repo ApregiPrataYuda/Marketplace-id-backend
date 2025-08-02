@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\Admin\Products;
 use App\Http\Controllers\Api\Admin\Category;
 use App\Http\Controllers\Api\Admin\Variant;
 use App\Http\Controllers\Api\Admin\Tags;
+use App\Http\Controllers\Api\Admin\ProductTags;
+use App\Http\Controllers\Api\Admin\ProductsImage;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -44,3 +46,20 @@ Route::get('tags-detail/{id}', [Tags::class, 'show'])->name('api.show.tags');
 Route::post('tags-create', [Tags::class, 'store'])->name('api.add.tags');  
 Route::put('tags-update/{id}', [Tags::class, 'update'])->name('api.update.tags');  
 Route::delete('tags-delete/{id}', [Tags::class, 'destroy'])->name('api.delete.tags');
+
+
+Route::get('tags-product', [ProductTags::class, 'index'])->name('api.tags.product');
+Route::get('tags-product-detail/{id}', [ProductTags::class, 'show'])->name('api.show.tags.product');
+Route::post('tags-product-create', [ProductTags::class, 'store'])->name('api.add.tags.product');  
+Route::put('tags-product-update/{id}', [ProductTags::class, 'update'])->name('api.update.tags.product');  
+Route::delete('tags-product-delete/{id}', [ProductTags::class, 'destroy'])->name('api.delete.tags.product');
+
+
+Route::get('images-product', [ProductsImage::class, 'index'])->name('api.images.product');
+Route::post('images-product-create', [ProductsImage::class, 'store'])->name('api.add.images.product'); 
+// ini untuk testing di postman
+Route::post('images-product-update/{id}', [ProductsImage::class, 'update'])->name('api.update.images.product');  
+// ini untuk di production atau mau di gunakan
+// Route::put('images-product-update/{id}', [ProductsImage::class, 'update'])->name('api.update.images.product');  
+Route::get('images-product-detail/{id}', [ProductsImage::class, 'show'])->name('api.show.images.product');
+Route::delete('images-product-delete/{id}', [ProductsImage::class, 'destroy'])->name('api.delete.images.product');
