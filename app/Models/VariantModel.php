@@ -42,10 +42,31 @@ public function scopeSearch($query, $search)
 
 
 // Scope untuk sorting dinamis
+// public function scopeSort($query, $sortBy, $sortDir)
+// {
+//     return $query->orderBy($sortBy ?? 'product_variants.created_at', $sortDir ?? 'asc');
+// }
+
+
 public function scopeSort($query, $sortBy, $sortDir)
 {
-    return $query->orderBy($sortBy ?? 'product_variants.created_at', $sortDir ?? 'asc');
+    $allowedSort = [
+        'product_variants.name',
+        'product_variants.created_at',
+        'products.name'
+    ];
+
+    if (!in_array($sortBy, $allowedSort)) {
+        $sortBy = 'product_variants.created_at';
+    }
+
+    $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
+
+    return $query->orderBy($sortBy, $sortDir);
 }
+
+
+
 
 public static function isDuplicate(array $data, $id = null): array
 {

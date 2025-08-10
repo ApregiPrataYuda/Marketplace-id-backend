@@ -34,7 +34,7 @@ class ProductTags extends Controller
             ->leftJoin('tags','tags.id','=','product_tag.tag_id')
             ->leftJoin('products','products.id','=','product_tag.product_id')
             ->onlyDeleted($onlyDeleted)
-            ->search($search)
+            ->search($search) 
             ->sort($sortBy, $sortDir);
         $results = $query->paginate($perPage);
         $message = $results->isEmpty() ? "Data yang Anda cari tidak ditemukan" : "Success";

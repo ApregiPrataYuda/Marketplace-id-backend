@@ -43,10 +43,31 @@ class Products extends Controller
         ->onlyDeleted($onlyDeleted)
         ->search($search)
         ->sort($sortBy, $sortDir);
+
+
         $results = $query->paginate($perPage);
         $message = $results->isEmpty() ? "Data yang Anda cari tidak ditemukan" : "Success";
         return ApiResponse::paginate(new ProductCollectionResource($results), $message);
     }
+
+
+public function select()
+{
+  $products = $this->ProductsModel
+            ->select('id', 'name') // Perbaiki di sini
+            ->get();
+            
+        return response()->json([
+            'success' => true,
+            'message' => 'Data produk berhasil diambil',
+            'data' => $products
+        ]);
+}
+
+
+
+ 
+
 
 
     public function show(string $id)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Helpers\ApiResponse;
 use App\Http\Resources\ProductsImageResource;
 use App\Http\Requests\ProductsImageRequestIndex;
@@ -26,24 +27,101 @@ class ProductsImage extends Controller
         // ?sort_by=menu&sort_dir=asc   -> sorting berdasarkan kolom
         // ?only_deleted=true           -> hanya tampilkan soft deleted
 
-       public function index(ProductsImageRequestIndex $request) {
-            $validated = $request->validated();
-            $search = $validated['search'] ?? null;
-            $perPage = is_numeric($validated['per_page'] ?? null) ? $validated['per_page'] : 10;
-            $sortBy = $validated['sort_by'] ?? 'created_at';
-            $sortDir = $validated['sort_dir'] ?? 'desc';
-            $onlyDeleted = $validated['only_deleted'] ?? false;
 
-            $query = $this->ProductsImageModel
-                ->select('product_images.*','products.name as name_product')
-                ->leftJoin('products','products.id','=','product_images.product_id')
-                ->onlyDeleted($onlyDeleted)
-                ->search($search)
-                ->sort($sortBy, $sortDir);
-            $results = $query->paginate($perPage);
-            $message = $results->isEmpty() ? "Data yang Anda cari tidak ditemukan" : "Success";
-            return ApiResponse::paginate(new ProductsImageResourceCollection($results), $message);
-       }
+         // query lama tampilkan semua data
+    //    public function index(ProductsImageRequestIndex $request) {
+    //         $validated = $request->validated();
+    //         $search = $validated['search'] ?? null;
+    //         $perPage = is_numeric($validated['per_page'] ?? null) ? $validated['per_page'] : 10;
+    //         $sortBy = $validated['sort_by'] ?? 'created_at';
+    //         $sortDir = $validated['sort_dir'] ?? 'desc';
+    //         $onlyDeleted = $validated['only_deleted'] ?? false;
+
+    //         $query = $this->ProductsImageModel
+    //             ->select('product_images.*','MIN(product_images.id) as id','products.name as name_product')
+    //             ->leftJoin('products','products.id','=','product_images.product_id')
+    //             ->onlyDeleted($onlyDeleted)
+    //             ->search($search)
+    //             ->sort($sortBy, $sortDir);
+    //         $results = $query->paginate($perPage);
+    //         $message = $results->isEmpty() ? "Data yang Anda cari tidak ditemukan" : "Success";
+    //         return ApiResponse::paginate(new ProductsImageResourceCollection($results), $message);
+    //    }
+
+
+    // query baru tampilkan 1 data saja jika ada banyak data
+public function index(ProductsImageRequestIndex $request)
+{
+    $validated = $request->validated();
+    $search = $validated['search'] ?? null;
+    $perPage = is_numeric($validated['per_page'] ?? null) ? $validated['per_page'] : 10;
+    $sortBy = $validated['sort_by'] ?? 'created_at';
+    $sortDir = $validated['sort_dir'] ?? 'desc';
+    $onlyDeleted = $validated['only_deleted'] ?? false;
+
+    $query = $this->ProductsImageModel
+        ->selectRaw('
+            MIN(product_images.id) as id,
+            product_images.product_id,
+            products.name as name_product,
+            MIN(product_images.created_at) as created_at,
+            MIN(product_images.updated_at) as updated_at
+        ')
+        ->leftJoin('products', 'products.id', '=', 'product_images.product_id')
+        ->onlyDeleted($onlyDeleted)
+        ->search($search)
+        ->groupBy('product_images.product_id', 'products.name')
+        ->orderBy($sortBy, $sortDir);
+
+    $results = $query->paginate($perPage);
+
+    $message = $results->isEmpty()
+        ? "Data yang Anda cari tidak ditemukan"
+        : "Success";
+
+    return ApiResponse::paginate(
+        new ProductsImageResourceCollection($results),
+        $message
+    );
+}
+
+
+
+
+
+
+
+public function getImagesByProduct(ProductsImageRequestIndex $request, $id)
+{
+    $validated = $request->validated();
+    $search = $validated['search'] ?? null;
+    $perPage = is_numeric($validated['per_page'] ?? null) ? $validated['per_page'] : 10;
+    $sortBy = $validated['sort_by'] ?? 'created_at';
+    $sortDir = $validated['sort_dir'] ?? 'desc';
+    $onlyDeleted = $validated['only_deleted'] ?? false;
+
+    $query = $this->ProductsImageModel
+        ->select('product_images.*', 'products.name as name_product')
+        ->leftJoin('products', 'products.id', '=', 'product_images.product_id')
+        ->where('products.id', $id)
+        ->onlyDeleted($onlyDeleted)
+        ->search($search)
+        ->sort($sortBy, $sortDir);
+
+    $results = $query->paginate($perPage);
+
+    if ($results->isEmpty()) {
+        return ApiResponse::error('Product Image not found', [
+            'id' => ['Data dengan ID tersebut tidak tersedia']
+        ], 404);
+    }
+    $message = $results->isEmpty() ? "Data yang Anda cari tidak ditemukan" : "Success";
+    return ApiResponse::paginate(new ProductsImageResourceCollection($results), $message);
+}
+
+
+
+
 
 
     //    api untuk simpan gambar product gambar banyak sekaligus
@@ -57,10 +135,16 @@ class ProductsImage extends Controller
                 foreach ($request->file('image') as $file) {
                     $filename = time() . '_' . $file->getClientOriginalName();
                     $file->storeAs('image/products', $filename, 'public');
-                    $images[] = $filename;
+                    // $images[] = $filename;
+                    //   $images[] = Storage::url('image/products/' . $filename);
+                      $images[] = url(Storage::url('image/products/' . $filename));
+
                 }
             } else {
-                $images[] = 'default.jpeg';
+                // $images[] = 'default.jpeg';
+                //  $images[] = Storage::url('image/products/default.jpg');
+                 $images[] = url(Storage::url('image/products/default.jpg'));
+
             }
 
             $createdImages = [];
@@ -151,7 +235,7 @@ public function store1image(ValidationAddProductImages $request)
 
             // (Opsional) Hapus gambar lama dari storage
             if ($productImage->image_url !== 'default.jpeg') {
-                \Storage::disk('public')->delete('image/products/' . $productImage->image_url);
+                Storage::disk('public')->delete('image/products/' . $productImage->image_url);
             }
 
             // Simpan nama file baru
@@ -212,15 +296,15 @@ public function destroy($id)
                         ->first();
 
         // Cegah hapus kalau itu default.jpeg
-        if ($image->image_url !== 'default.jfif' && \Storage::disk('public')->exists('image/products/' . $image->image_url)) {
-            \Storage::disk('public')->delete('image/products/' . $image->image_url);
+        if ($image->image_url !== 'default.jfif' && Storage::disk('public')->exists('image/products/' . $image->image_url)) {
+            Storage::disk('public')->delete('image/products/' . $image->image_url);
         }
 
         $image->delete();
 
           return ApiResponse::success(new ProductsImageResource($imageprod), 'Images Product berhasil dihapus.', 200);
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        return ApiResponse::error('Gambar tidak ditemukan', [], 404);
+        return ApiResponse::error('Gambar Dengan ID Tersebut tidak ditemukan', [], 404);
     } catch (\Exception $e) {
         return ApiResponse::error('Terjadi kesalahan saat menghapus gambar', [
             'exception' => config('app.debug') ? $e->getMessage() : null

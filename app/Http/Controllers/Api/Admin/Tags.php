@@ -46,6 +46,20 @@ class Tags extends Controller
         return ApiResponse::paginate(new TagsCollectionResource($results), $message);
     }
 
+
+            public function select()
+            {
+            $tags = $this->TagsModel
+                        ->select('id', 'name') 
+                        ->get();
+                        
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Data Tags berhasil diambil',
+                        'data' => $tags
+                    ]);
+            }
+
     
         public function show(string $id)
         {
@@ -71,7 +85,8 @@ class Tags extends Controller
                         }
 
                     $tags = $this->TagsModel->create([
-                        'name'     => $data['name'],
+                        'name'     => strip_tags($data['name']),
+                        // 'name'     => $data['name'],
                         'slug'   => Str::slug($data['name']), 
                     ]);
 

@@ -30,15 +30,28 @@ class ProductTagsModel extends Model
 
 
 
+// public function scopeSearch($query, $search)
+// {
+//     if ($search) {
+//         return $query->where(function ($q) use ($search) {
+//             $q->where('products.name', 'like', "%{$search}%");
+//         });
+//     }
+//     return $query;
+// }
+
 public function scopeSearch($query, $search)
 {
     if ($search) {
         return $query->where(function ($q) use ($search) {
-            $q->where('products.name_product', 'like', "%{$search}%");
+            $q->where('products.name', 'like', "%{$search}%")
+              ->orWhere('tags.name', 'like', "%{$search}%");
         });
     }
+
     return $query;
 }
+
 
 
 

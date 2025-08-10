@@ -18,6 +18,7 @@ Route::get('/user', function (Request $request) {
 // this is route for products
 Route::get('products', [Products::class, 'index'])->name('api.products');
 Route::post('products-create', [Products::class, 'store'])->name('api.add.products');         
+Route::get('products-select', [Products::class, 'select'])->name('api.select.products');         
 Route::get('products-detail/{id}', [Products::class, 'show'])->name('api.show.products');
 Route::put('products-update/{id}', [Products::class, 'update'])->name('api.update.products');             
 Route::delete('products-delete/{id}', [Products::class, 'destroy'])->name('api.delete.products');   
@@ -42,10 +43,12 @@ Route::delete('variant-delete/{id}', [Variant::class, 'destroy'])->name('api.del
 
 
 Route::get('tags', [Tags::class, 'index'])->name('api.tags');
+Route::get('tags-select', [Tags::class, 'select'])->name('api.select.tags');
 Route::get('tags-detail/{id}', [Tags::class, 'show'])->name('api.show.tags');
 Route::post('tags-create', [Tags::class, 'store'])->name('api.add.tags');  
 Route::put('tags-update/{id}', [Tags::class, 'update'])->name('api.update.tags');  
 Route::delete('tags-delete/{id}', [Tags::class, 'destroy'])->name('api.delete.tags');
+
 
 
 Route::get('tags-product', [ProductTags::class, 'index'])->name('api.tags.product');
@@ -56,6 +59,7 @@ Route::delete('tags-product-delete/{id}', [ProductTags::class, 'destroy'])->name
 
 
 Route::get('images-product', [ProductsImage::class, 'index'])->name('api.images.product');
+
 Route::post('images-product-create', [ProductsImage::class, 'store'])->name('api.add.images.product'); 
 // ini untuk testing di postman
 Route::post('images-product-update/{id}', [ProductsImage::class, 'update'])->name('api.update.images.product');  
@@ -63,3 +67,4 @@ Route::post('images-product-update/{id}', [ProductsImage::class, 'update'])->nam
 // Route::put('images-product-update/{id}', [ProductsImage::class, 'update'])->name('api.update.images.product');  
 Route::get('images-product-detail/{id}', [ProductsImage::class, 'show'])->name('api.show.images.product');
 Route::delete('images-product-delete/{id}', [ProductsImage::class, 'destroy'])->name('api.delete.images.product');
+Route::get('images-by-product/{id}', [ProductsImage::class, 'getImagesByProduct'])->name('api.images.by.product');
