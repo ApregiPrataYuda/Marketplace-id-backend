@@ -228,19 +228,38 @@ public function store1image(ValidationAddProductImages $request)
         $productImage = $this->ProductsImageModel->findOrFail($id);
 
         // Upload file baru
+        // if ($request->hasFile('image')) {
+        //     $file = $request->file('image');
+        //     $filename = time() . '_' . $file->getClientOriginalName();
+        //     $file->storeAs('image/products', $filename, 'public');
+        //      $images[] = url(Storage::url('image/products/' . $filename));
+
+        //     // (Opsional) Hapus gambar lama dari storage
+        //     if ($productImage->image_url !== 'default.jpeg') {
+        //         Storage::disk('public')->delete('image/products/' . $productImage->image_url);
+        //     }
+
+        //     // Simpan nama file baru
+        //     $productImage->image_url = $filename;
+        // }
+
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('image/products', $filename, 'public');
+                    $file = $request->file('image');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->storeAs('image/products', $filename, 'public');
 
-            // (Opsional) Hapus gambar lama dari storage
-            if ($productImage->image_url !== 'default.jpeg') {
-                Storage::disk('public')->delete('image/products/' . $productImage->image_url);
-            }
+                    // Hapus gambar lama dari storage (kalau ada dan bukan default)
+                    if ($productImage->image_url && !str_contains($productImage->image_url, 'default.jpg')) {
+                        // Ambil path relatif dari URL lama
+                        $oldPath = str_replace(url('/storage/') . '/', '', $productImage->image_url);
+                        Storage::disk('public')->delete($oldPath);
+                    }
 
-            // Simpan nama file baru
-            $productImage->image_url = $filename;
-        }
+                    // Simpan URL lengkap
+                    $productImage->image_url = url(Storage::url('image/products/' . $filename));
+                }
+
+
 
           $productImage->product_id = $request->product_id;
         // Jika is_primary diset, update juga
@@ -295,8 +314,8 @@ public function destroy($id)
                         ->where('product_images.id', $id)
                         ->first();
 
-        // Cegah hapus kalau itu default.jpeg
-        if ($image->image_url !== 'default.jfif' && Storage::disk('public')->exists('image/products/' . $image->image_url)) {
+        // Cegah hapus kalau itu default
+        if ($image->image_url !== 'default.jpg' && Storage::disk('public')->exists('image/products/' . $image->image_url)) {
             Storage::disk('public')->delete('image/products/' . $image->image_url);
         }
 

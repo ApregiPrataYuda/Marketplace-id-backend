@@ -24,7 +24,7 @@ class ValidationAddProductImages extends FormRequest
            'image.*' => 'file|mimes:jpeg,png,jpg,gif|max:2048',
 
             'is_primary' => [
-                'required',
+                'nullable',
                 'integer',
                 'in:0,1',
             ],

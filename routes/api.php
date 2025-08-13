@@ -8,13 +8,24 @@ use App\Http\Controllers\Api\Admin\Variant;
 use App\Http\Controllers\Api\Admin\Tags;
 use App\Http\Controllers\Api\Admin\ProductTags;
 use App\Http\Controllers\Api\Admin\ProductsImage;
+use App\Http\Controllers\Api\Auth\AuthController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
 
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login'])->name('login');
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
 // this is route for products
 Route::get('products', [Products::class, 'index'])->name('api.products');
 Route::post('products-create', [Products::class, 'store'])->name('api.add.products');         
@@ -22,7 +33,7 @@ Route::get('products-select', [Products::class, 'select'])->name('api.select.pro
 Route::get('products-detail/{id}', [Products::class, 'show'])->name('api.show.products');
 Route::put('products-update/{id}', [Products::class, 'update'])->name('api.update.products');             
 Route::delete('products-delete/{id}', [Products::class, 'destroy'])->name('api.delete.products');   
-
+});
 
 
 // this is route for Category
@@ -59,7 +70,6 @@ Route::delete('tags-product-delete/{id}', [ProductTags::class, 'destroy'])->name
 
 
 Route::get('images-product', [ProductsImage::class, 'index'])->name('api.images.product');
-
 Route::post('images-product-create', [ProductsImage::class, 'store'])->name('api.add.images.product'); 
 // ini untuk testing di postman
 Route::post('images-product-update/{id}', [ProductsImage::class, 'update'])->name('api.update.images.product');  
